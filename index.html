@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>What's Your Flavor Personality? 【FlavorTI】</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
+
+  :root {
+    --pink: #ff6fd8; --cyan: #00d2ff; --dark1: #0f0c29; --dark2: #302b63; --dark3: #24243e;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    font-family:'Poppins',-apple-system,BlinkMacSystemFont,sans-serif;
+    min-height:100vh; background:linear-gradient(135deg,var(--dark1),var(--dark2),var(--dark3));
+    color:#fff; overflow-x:hidden;
+  }
+
+  /* ===== Background blobs ===== */
+  .bg-blobs { position:fixed; top:0; left:0; width:100%; height:100%; z-index:0; pointer-events:none; }
+  .blob { position:absolute; border-radius:50%; filter:blur(80px); opacity:.3; animation:bfloat 14s ease-in-out infinite; }
+  .blob-1 { width:420px; height:420px; background:#ff6fd8; top:-10%; left:-5%; }
+  .blob-2 { width:350px; height:350px; background:#3813c2; bottom:-8%; right:-5%; animation-delay:-5s; }
+  .blob-3 { width:300px; height:300px; background:#00d2ff; top:40%; left:50%; animation-delay:-9s; }
+  @keyframes bfloat {
+    0%,100%{transform:translate(0,0) scale(1)}
+    33%{transform:translate(30px,-30px) scale(1.06)}
+    66%{transform:translate(-20px,20px) scale(.94)}
+  }
+
+  /* ===== Sparkles on welcome ===== */
+  .sparkle-container { position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:0; overflow:hidden; }
+  .sparkle {
+    position:absolute; width:3px; height:3px; background:#fff; border-radius:50%;
+    animation:sparkleAnim linear infinite; opacity:0;
+  }
+  @keyframes sparkleAnim {
+    0%{opacity:0;transform:translateY(0) scale(0)}
+    20%{opacity:1;transform:translateY(-20px) scale(1)}
+    100%{opacity:0;transform:translateY(-120px) scale(0)}
+  }
+
+  /* ===== Top bar ===== */
+  .top-bar {
+    position:fixed; top:0; left:0; right:0; z-index:100;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:16px 24px;
+    background:rgba(15,12,41,.6); backdrop-filter:blur(12px);
+    border-bottom:1px solid rgba(255,255,255,.06);
+  }
+  .logo { display:flex; align-items:center; gap:8px; }
+  .logo-mark {
+    font-size:1.5rem; font-weight:900; letter-spacing:2px;
+    background:linear-gradient(135deg,#ff6fd8,#00d2ff);
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+  }
+  .logo-sub { font-size:.55rem; color:rgba(255,255,255,.4); letter-spacing:1.5px; text-transform:uppercase; margin-top:-2px; }
+
+  .top-actions { display:flex; align-items:center; gap:10px; }
+  .icon-btn {
+    width:38px; height:38px; border-radius:12px; border:1px solid rgba(255,255,255,.12);
+    background:rgba(255,255,255,.05); color:#fff; font-size:1rem; cursor:pointer;
+    display:flex; align-items:center; justify-content:center; transition:all .2s;
+  }
+  .icon-btn:hover { background:rgba(255,111,216,.12); border-color:rgba(255,111,216,.4); }
+
+  .lang-toggle {
+    padding:6px 14px; border-radius:20px; border:1px solid rgba(255,255,255,.15);
+    background:rgba(255,255,255,.06); color:#fff; font-family:inherit; font-size:.8rem;
+    font-weight:600; cursor:pointer; transition:all .2s; letter-spacing:.5px;
+  }
+  .lang-toggle:hover { background:rgba(255,111,216,.12); border-color:rgba(255,111,216,.4); }
+
+  /* ===== Container ===== */
+  .container {
+    position:relative; z-index:1;
+    max-width:680px; margin:0 auto; padding:90px 20px 40px;
+    min-height:100vh; display:flex; flex-direction:column; justify-content:center; align-items:center;
+  }
+
+  /* ===== Screens ===== */
+  .screen { width:100%; display:none; }
+  .screen.active { display:block; animation:fadeSlideIn .5s ease forwards; }
+  @keyframes fadeSlideIn { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
+
+  /* ===== Welcome ===== */
+  .welcome { text-align:center; }
+  .welcome-emojis { font-size:52px; margin-bottom:16px; display:flex; justify-content:center; gap:8px; }
+  .welcome-emojis span { display:inline-block; animation:emojiBounce 2.5s ease-in-out infinite; }
+  .welcome-emojis span:nth-child(2){animation-delay:.3s}
+  .welcome-emojis span:nth-child(3){animation-delay:.6s}
+  .welcome-emojis span:nth-child(4){animation-delay:.9s}
+  .welcome-emojis span:nth-child(5){animation-delay:1.2s}
+  @keyframes emojiBounce {0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+
+  .welcome h1 {
+    font-size:2.5rem; font-weight:900; line-height:1.15;
+    background:linear-gradient(90deg,#ff6fd8,#00d2ff);
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+    margin-bottom:8px;
+  }
+  .welcome .brand-sub { font-size:.9rem; color:rgba(255,255,255,.45); font-weight:500; margin-bottom:24px; letter-spacing:2px; }
+  .welcome p { font-size:1.05rem; color:rgba(255,255,255,.7); margin-bottom:36px; line-height:1.65; max-width:520px; margin-left:auto; margin-right:auto; }
+
+  /* ===== Buttons ===== */
+  .btn-primary {
+    display:inline-block; padding:16px 52px; border:none; border-radius:50px; cursor:pointer;
+    font-family:inherit; font-size:1.1rem; font-weight:700; color:#fff;
+    background:linear-gradient(135deg,#ff6fd8,#3813c2);
+    box-shadow:0 8px 32px rgba(255,111,216,.35); transition:all .25s;
+  }
+  .btn-primary:hover { transform:translateY(-3px); box-shadow:0 14px 44px rgba(255,111,216,.5); }
+  .btn-primary:active { transform:translateY(0); }
+
+  .btn-secondary {
+    display:inline-block; padding:14px 36px; border:2px solid rgba(255,255,255,.25); border-radius:50px; cursor:pointer;
+    font-family:inherit; font-size:1rem; font-weight:600; color:#fff; background:transparent; transition:all .2s;
+  }
+  .btn-secondary:hover { border-color:#ff6fd8; background:rgba(255,111,216,.08); }
+
+  .btn-save {
+    display:inline-flex; align-items:center; gap:8px;
+    padding:14px 36px; border:none; border-radius:50px; cursor:pointer;
+    font-family:inherit; font-size:1rem; font-weight:600; color:#fff;
+    background:linear-gradient(135deg,#00d2ff,#3813c2);
+    box-shadow:0 6px 24px rgba(0,210,255,.3); transition:all .25s;
+  }
+  .btn-save:hover { transform:translateY(-2px); box-shadow:0 10px 36px rgba(0,210,255,.45); }
+
+  /* ===== Progress ===== */
+  .progress-wrapper { width:100%; margin-bottom:28px; }
+  .progress-info { display:flex; justify-content:space-between; margin-bottom:8px; font-size:.82rem; color:rgba(255,255,255,.55); }
+  .progress-bar { width:100%; height:6px; background:rgba(255,255,255,.1); border-radius:3px; overflow:hidden; }
+  .progress-fill { height:100%; width:0%; background:linear-gradient(90deg,#ff6fd8,#00d2ff); border-radius:3px; transition:width .45s ease; }
+
+  /* ===== Question ===== */
+  .question-card {
+    background:rgba(255,255,255,.06); backdrop-filter:blur(20px);
+    border:1px solid rgba(255,255,255,.1); border-radius:24px; padding:36px 28px;
+  }
+  .question-card h2 { font-size:1.3rem; font-weight:700; margin-bottom:24px; line-height:1.45; }
+  .options { display:flex; flex-direction:column; gap:11px; }
+  .option-btn {
+    width:100%; padding:15px 20px; border:2px solid rgba(255,255,255,.1); border-radius:16px;
+    background:rgba(255,255,255,.03); color:#fff; font-family:inherit; font-size:.93rem;
+    text-align:left; cursor:pointer; transition:all .25s; line-height:1.4;
+  }
+  .option-btn:hover { border-color:rgba(255,111,216,.45); background:rgba(255,111,216,.07); transform:translateX(4px); }
+  .option-btn.selected { border-color:#ff6fd8; background:rgba(255,111,216,.14); box-shadow:0 0 20px rgba(255,111,216,.12); }
+
+  /* ===== Result ===== */
+  .result { text-align:center; }
+  .result-capture {
+    width:min(100%,520px); min-height:760px; margin:0 auto 24px; padding:0 28px 34px;
+    position:relative; overflow:hidden; border-radius:34px; border:1px solid rgba(255,255,255,.18);
+    background:
+      radial-gradient(circle at 88% 62%, rgba(0,210,255,.42), transparent 34%),
+      linear-gradient(155deg, #9a28e8 0%, #4968d6 48%, #00c7c9 100%);
+    box-shadow:0 24px 80px rgba(0,0,0,.38);
+  }
+  .result-capture::before {
+    content:''; position:absolute; inset:0;
+    background:linear-gradient(180deg, rgba(255,255,255,.08), transparent 38%, rgba(0,0,0,.08));
+    pointer-events:none;
+  }
+  .result-capture > * { position:relative; z-index:1; }
+  .result-illust {
+    height:315px; margin:0 -28px 18px; display:flex; align-items:flex-start; justify-content:center;
+    overflow:hidden; pointer-events:none;
+  }
+  .result-illust img {
+    width:min(118%,560px); max-width:none; height:auto; margin-top:-86px; display:block; object-fit:contain;
+    filter:saturate(1.08) contrast(1.04);
+  }
+  .result-emoji {
+    width:82px; height:82px; margin:4px auto 22px; display:flex; align-items:center; justify-content:center;
+    font-size:50px; border-radius:50%; background:rgba(255,255,255,.16); border:1px solid rgba(255,255,255,.22);
+    box-shadow:inset 0 1px 12px rgba(255,255,255,.12), 0 14px 30px rgba(0,0,0,.12);
+  }
+  .result-label {
+    font-size:.9rem; font-weight:700; letter-spacing:7px; color:rgba(255,255,255,.46); margin-bottom:16px;
+    text-transform:none;
+  }
+  .result-title {
+    margin:0 0 22px; padding:12px 14px 14px; border-radius:0; color:#fff;
+    font-size:2.05rem; font-weight:900; line-height:1.1; letter-spacing:.02em;
+    background:linear-gradient(90deg, #a932f2, #00d2d8);
+    text-shadow:0 2px 14px rgba(0,0,0,.2); box-shadow:0 8px 26px rgba(0,0,0,.08);
+  }
+  .result-desc {
+    max-width:440px; margin:0 auto 38px; font-size:1.05rem; color:rgba(255,255,255,.78);
+    line-height:2.05; font-weight:500;
+  }
+  .flavor-section h3 {
+    font-size:.95rem; letter-spacing:6px; color:rgba(255,255,255,.38); margin-bottom:22px;
+    text-transform:none; font-weight:800;
+  }
+  .flavor-tags { display:flex; flex-wrap:wrap; justify-content:center; gap:14px 16px; margin-bottom:34px; }
+  .flavor-tag {
+    min-width:122px; padding:13px 22px; border-radius:999px; font-size:1rem; font-weight:700; color:rgba(255,255,255,.9);
+    background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.14); box-shadow:inset 0 1px 10px rgba(255,255,255,.08);
+  }
+  .result-brand { font-size:.95rem; color:rgba(255,255,255,.38); letter-spacing:5px; margin-top:6px; font-weight:800; }
+  .result-brand b { color:rgba(255,255,255,.52); }
+
+  .result-actions { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; margin-bottom:16px; }
+  .footer-brand { margin-top:24px; font-size:.72rem; color:rgba(255,255,255,.22); letter-spacing:1px; }
+
+  /* ===== Analytics Modal ===== */
+  .modal-overlay {
+    position:fixed; top:0; left:0; width:100%; height:100%; z-index:200;
+    background:rgba(0,0,0,.65); backdrop-filter:blur(8px);
+    display:none; align-items:center; justify-content:center; padding:20px;
+  }
+  .modal-overlay.open { display:flex; }
+  .modal {
+    background:linear-gradient(145deg,#1a1740,#252150);
+    border:1px solid rgba(255,255,255,.1); border-radius:24px;
+    padding:36px 32px; max-width:560px; width:100%; max-height:85vh; overflow-y:auto;
+    animation:fadeSlideIn .35s ease;
+  }
+  .modal h2 { font-size:1.4rem; font-weight:800; margin-bottom:6px; }
+  .modal .modal-sub { font-size:.85rem; color:rgba(255,255,255,.45); margin-bottom:24px; }
+  .modal .stat-row { display:flex; gap:16px; margin-bottom:24px; }
+  .stat-card {
+    flex:1; padding:16px; border-radius:16px;
+    background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.08); text-align:center;
+  }
+  .stat-card .stat-num { font-size:2rem; font-weight:800; background:linear-gradient(90deg,#ff6fd8,#00d2ff); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+  .stat-card .stat-lbl { font-size:.72rem; color:rgba(255,255,255,.4); text-transform:uppercase; letter-spacing:1px; margin-top:4px; }
+  .chart-section { margin-bottom:24px; }
+  .chart-section h3 { font-size:.85rem; font-weight:600; margin-bottom:16px; color:rgba(255,255,255,.6); }
+  .bar-row { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+  .bar-label { width:130px; font-size:.75rem; text-align:right; color:rgba(255,255,255,.6); flex-shrink:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .bar-track { flex:1; height:22px; background:rgba(255,255,255,.06); border-radius:11px; overflow:hidden; position:relative; }
+  .bar-fill { height:100%; border-radius:11px; transition:width .6s ease; min-width:2px; }
+  .bar-count { font-size:.75rem; color:rgba(255,255,255,.5); width:30px; text-align:left; }
+  .modal-actions { display:flex; gap:10px; justify-content:flex-end; margin-top:20px; }
+  .btn-modal {
+    padding:10px 24px; border-radius:12px; border:none; cursor:pointer;
+    font-family:inherit; font-size:.85rem; font-weight:600; transition:all .2s;
+  }
+  .btn-close { background:rgba(255,255,255,.08); color:#fff; }
+  .btn-close:hover { background:rgba(255,255,255,.14); }
+  .btn-danger { background:rgba(255,60,60,.15); color:#ff6b6b; border:1px solid rgba(255,60,60,.2); }
+  .btn-danger:hover { background:rgba(255,60,60,.25); }
+
+  /* ===== Responsive ===== */
+  @media(max-width:480px){
+    .welcome h1{font-size:1.8rem}
+    .result-title{font-size:1.7rem;padding:11px 10px 13px}
+    .question-card{padding:26px 18px}
+    .result-capture{min-height:720px;padding:0 18px 30px;border-radius:28px}
+    .result-illust{height:280px;margin:0 -18px 18px}
+    .result-illust img{width:124%;margin-top:-70px}
+    .result-desc{font-size:.94rem;line-height:1.9;margin-bottom:30px}
+    .flavor-tag{min-width:108px;font-size:.92rem;padding:11px 18px}
+    .container{padding:80px 14px 30px}
+    .top-bar{padding:12px 16px}
+    .modal{padding:28px 20px}
+    .stat-row{flex-direction:column}
+    .bar-label{width:90px;font-size:.68rem}
+    .welcome-emojis{font-size:40px}
+  }
+
+</style>
+</head>
+<body>
+
+<!-- Blobs -->
+<div class="bg-blobs"><div class="blob blob-1"></div><div class="blob blob-2"></div><div class="blob blob-3"></div></div>
+
+<!-- Sparkles -->
+<div class="sparkle-container" id="sparkle-container"></div>
+
+<!-- Top Bar -->
+<div class="top-bar">
+  <div class="logo-only"><img src="data:image/png;base64,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twGZPwMyQMYjRiFABshKOXwbkPkzIANkPGIUAmSArJTDtwGZPwMyQMYjRiFABshKOXwbkPkzIANkPGIUAmSArJTDtwGZPwMyQMYjRiFABshKOXwbkPkzIANkPGIUAmSArJTDtwGZPwMyQMYjRiFABshKOXwbkPkzIANkPGIUAmSArJTDtwGZPwMyQMYjRiFABshKOXwbkPkzIANkPGIUAmSArJTDtwGZPwMyQMYjRiFABshKOXwbkPkzIANkPGIUAmSArJTDtwGZPwMyQMYjRiFABshKOXwbkPkzIANkPGIUAmSArJTDtwGZPwMyQMYjRiFABshKOXwbkPkzIANkPGIUAmSArJTDtwGZPwMyQMYjRiFABshKOXwbkPkzIANkPGIUAmSArJTDtwGZPwMyQMYjRiFABshKOXwbkPlzTyCT2WV02v1tGhjqve0F36f24hErk9TXB3Hs84bb1Gi1aZ7el0eMQiKbS4seLB93L7xgZZuEavKI1Upk/dQYupWEvrnnlvoWGli6C49YmUR2OjVavT/21NxM0txEqd6dR4xCMtuf5g0vLh13L2zPt9SH84hV6r/ihMEc4XsM+QAAAABJRU5ErkJggg==" alt="IFF" style="height:36px"></div>
+  <div class="top-actions">
+    <button class="icon-btn" onclick="toggleAnalytics()" title="Analytics">📊</button>
+    <button class="lang-toggle" id="lang-btn" onclick="toggleLang()">中文</button>
+  </div>
+</div>
+
+<!-- Analytics Modal -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModalOutside(event)">
+  <div class="modal" id="modal">
+    <h2 id="analytics-title">📊 FlavorTI Analytics</h2>
+    <div class="modal-sub" id="analytics-sub">Quiz completion data stored locally on this device.</div>
+    <div class="stat-row">
+      <div class="stat-card">
+        <div class="stat-num" id="stat-total">0</div>
+        <div class="stat-lbl" id="stat-total-lbl">Total Completions</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" id="stat-top-emoji">-</div>
+        <div class="stat-lbl" id="stat-top-lbl">Most Popular</div>
+      </div>
+    </div>
+    <div class="chart-section">
+      <h3 id="chart-title">Personality Distribution</h3>
+      <div id="chart-bars"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-modal btn-danger" id="btn-clear" onclick="clearData()">Clear Data</button>
+      <button class="btn-modal btn-close" id="btn-close-modal" onclick="closeModal()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Main Container -->
+<div class="container">
+
+  <!-- Welcome -->
+  <div class="screen active" id="welcome-screen">
+    <div class="welcome">
+      <div class="welcome-emojis">
+        <span>🍯</span><span>🔥</span><span>🧪</span><span>🍬</span><span>🫚</span>
+      </div>
+      <h1 id="w-title">What's Your Flavor Personality?</h1>
+      <div class="brand-sub">【FlavorTI】</div>
+      <p id="w-desc">Answer 8 fun questions to discover which of 10 flavor archetypes matches your vibe — and find out what your taste buds say about you.</p>
+      <button class="btn-primary" onclick="startQuiz()" id="w-btn">Discover My Flavor →</button>
+    </div>
+  </div>
+
+  <!-- Quiz -->
+  <div class="screen" id="quiz-screen">
+    <div class="progress-wrapper">
+      <div class="progress-info">
+        <span id="progress-text">Question 1 of 8</span>
+        <span id="progress-pct">0%</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+    </div>
+    <div class="question-card" id="question-card">
+      <h2 id="question-text"></h2>
+      <div class="options" id="options-container"></div>
+    </div>
+  </div>
+
+  <!-- Result -->
+  <div class="screen" id="result-screen">
+    <div class="result">
+      <div class="result-capture" id="result-capture">
+        <div class="result-illust" id="result-illust"></div>
+        <div class="result-emoji" id="result-emoji"></div>
+        <div class="result-label" id="result-label">Your Flavor Personality</div>
+        <div class="result-title" id="result-title"></div>
+        <div class="result-desc" id="result-desc"></div>
+        <div class="flavor-section">
+          <h3 id="flavor-heading">✦ Your Signature Flavors ✦</h3>
+          <div class="flavor-tags" id="flavor-tags"></div>
+        </div>
+        <div class="result-brand"><b>FlavorTI</b> × <b>IFF</b></div>
+      </div>
+      <div class="result-actions">
+        <button class="btn-save" onclick="saveImage()" id="btn-save">📸 <span>Save as Image</span></button>
+        <button class="btn-secondary" onclick="retakeQuiz()" id="btn-retake">↻ Retake Quiz</button>
+      </div>
+      <div class="footer-brand">Powered by <b>FlavorTI</b> × <b>IFF</b></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ==================== LANGUAGE DATA ====================
+let lang = 'en';
+
+const i18n = {
+  en: {
+    wTitle: "What's Your Flavor Personality?",
+    wDesc: "Answer 8 fun questions to discover which of 10 flavor archetypes matches your vibe — and find out what your taste buds say about you.",
+    wBtn: "Discover My Flavor →",
+    qOf: "Question {n} of 8",
+    resultLabel: "Your Flavor Personality",
+    flavorHeading: "✦ Your Signature Flavors ✦",
+    saveBtn: "Save as Image",
+    retakeBtn: "↻ Retake Quiz",
+    analyticsTitle: "📊 FlavorTI Analytics",
+    analyticsSub: "Quiz completion data stored locally on this device.",
+    statTotalLbl: "Total Completions",
+    statTopLbl: "Most Popular",
+    chartTitle: "Personality Distribution",
+    clearBtn: "Clear Data",
+    closeBtn: "Close",
+    langBtn: "中文"
+  },
+  cn: {
+    wTitle: "你是哪种风味人格？",
+    wDesc: "回答8道趣味问题，解锁你的专属风味人格——看看你的味蕾出卖了你哪些秘密。",
+    wBtn: "开始测试 →",
+    qOf: "第 {n} 题 / 共 8 题",
+    resultLabel: "你的风味人格",
+    flavorHeading: "✦ 你的专属风味 ✦",
+    saveBtn: "保存图片",
+    retakeBtn: "↻ 再测一次",
+    analyticsTitle: "📊 FlavorTI 数据看板",
+    analyticsSub: "测试完成数据存储在本地设备。",
+    statTotalLbl: "总完成次数",
+    statTopLbl: "最受欢迎",
+    chartTitle: "人格分布",
+    clearBtn: "清除数据",
+    closeBtn: "关闭",
+    langBtn: "EN"
+  }
+};
+
+// ==================== QUESTIONS ====================
+const questionsData = {
+  en: [
+    {
+      text: "🌙 It's Friday night. What's your plan?",
+      options: [
+        { text: "Couch + comfort food + my favorite show", types:{sweet:1,creamy:.5} },
+        { text: "Hit up a buzzy new hotpot / BBQ spot", types:{spicy:1,smoky:.5} },
+        { text: "Explore that hole-in-the-wall place I bookmarked", types:{sour:.5,futurist:1} },
+        { text: "Cook a proper meal at home, nothing fancy", types:{umami:1,philosopher:.5} },
+        { text: "Grab something light and go for an evening walk", types:{fresh:1,sour:.5} }
+      ]
+    },
+    {
+      text: "✈️ You just landed in a new city. What catches your eye first?",
+      options: [
+        { text: "A charming patisserie with pastries in the window", types:{sweet:1,creamy:.5} },
+        { text: "Street food stalls with smoke and sizzle everywhere", types:{smoky:1,spicy:.5} },
+        { text: "A fresh juice bar with fruits I've never seen", types:{sour:1,fresh:.5} },
+        { text: "A spice market with layers of aroma", types:{philosopher:1,umami:.5} },
+        { text: "A pop-up food lab doing weird fusion dishes", types:{futurist:1,sweetsalty:.5} }
+      ]
+    },
+    {
+      text: "👥 In your friend group, you're the one who…",
+      options: [
+        { text: "Always brings snacks and makes everyone feel cozy", types:{creamy:1,sweet:.5} },
+        { text: "Picks the restaurant — and it's never boring", types:{spicy:.5,futurist:1} },
+        { text: "Knows all the hidden gems and secret menus", types:{philosopher:.5,smoky:1} },
+        { text: "Suggests something new every time — 'trust me on this'", types:{sour:.5,sweetsalty:1} },
+        { text: "Keeps it chill, goes with the flow, enjoys everything", types:{fresh:1,umami:.5} }
+      ]
+    },
+    {
+      text: "🌅 Ideal Saturday morning?",
+      options: [
+        { text: "Pancakes, syrup, and zero urgency", types:{sweet:1,sweetsalty:.5} },
+        { text: "Farmers' market haul + a smoothie bowl", types:{fresh:1,sour:.5} },
+        { text: "Black coffee, vinyl records, slow vibes", types:{smoky:1,philosopher:.5} },
+        { text: "Brunch with friends — eggs benny and mimosas", types:{creamy:.5,umami:1} },
+        { text: "Hunting for a bizarre new breakfast trend online", types:{futurist:.5,sweetsalty:1} }
+      ]
+    },
+    {
+      text: "🎬 Pick a movie vibe for tonight:",
+      options: [
+        { text: "A heartwarming rom-com or feel-good animation", types:{sweet:.5,creamy:1} },
+        { text: "Action-packed thriller — keep my heart racing", types:{spicy:1,smoky:.5} },
+        { text: "A quirky indie film nobody's heard of", types:{futurist:1,philosopher:.5} },
+        { text: "Epic documentary — I want to learn something", types:{umami:.5,philosopher:1} },
+        { text: "A wild comedy — make me laugh till it hurts", types:{sweetsalty:1,sour:.5} }
+      ]
+    },
+    {
+      text: "🖥️ Your desk / workspace says this about you:",
+      options: [
+        { text: "Cute mugs, snacks drawer, cozy chaos", types:{sweet:.5,sweetsalty:1} },
+        { text: "Minimalist, clean, a single plant", types:{fresh:1,umami:.5} },
+        { text: "Organized chaos — I know where everything is", types:{philosopher:1,spicy:.5} },
+        { text: "Mood lighting, candles, vintage items", types:{smoky:1,creamy:.5} },
+        { text: "Covered in sticky notes with wild ideas", types:{futurist:1,sour:.5} }
+      ]
+    },
+    {
+      text: "⚡ What energizes you the most?",
+      options: [
+        { text: "A deep, meaningful conversation", types:{umami:1,philosopher:.5} },
+        { text: "Trying something I've never done before", types:{sour:1,futurist:.5} },
+        { text: "Competing and winning — even at board games", types:{spicy:1,sweetsalty:.5} },
+        { text: "Being in nature, breathing fresh air", types:{fresh:1,smoky:.5} },
+        { text: "Good food and good company, that's it", types:{creamy:1,sweet:.5} }
+      ]
+    },
+    {
+      text: "🦸 Pick a superpower:",
+      options: [
+        { text: "Time travel — I want to experience every era", types:{smoky:1,philosopher:.5} },
+        { text: "Mind reading — know what everyone really thinks", types:{umami:1,spicy:.5} },
+        { text: "Teleportation — the world is my buffet", types:{sour:.5,futurist:1} },
+        { text: "Healing touch — make everyone feel better", types:{sweet:.5,creamy:1} },
+        { text: "Shape-shifting — why be one thing when you can be all?", types:{sweetsalty:1,fresh:.5} }
+      ]
+    }
+  ],
+  cn: [
+    {
+      text: "🌙 周五下班了，你最想干什么？",
+      options: [
+        { text: "窝沙发点甜食追剧", types:{sweet:1,creamy:.5} },
+        { text: "约朋友去新开的火锅烧烤", types:{spicy:1,smoky:.5} },
+        { text: "去探收藏很久的小馆子", types:{sour:.5,futurist:1} },
+        { text: "回家踏踏实实做顿饭", types:{umami:1,philosopher:.5} },
+        { text: "买杯果汁出去走走", types:{fresh:1,sour:.5} }
+      ]
+    },
+    {
+      text: "✈️ 到了一个新城市，你第一个被吸引的是？",
+      options: [
+        { text: "橱窗里摆满精致甜点的面包房", types:{sweet:1,creamy:.5} },
+        { text: "烟火气十足的街头烧烤摊", types:{smoky:1,spicy:.5} },
+        { text: "没见过的水果鲜榨果汁店", types:{sour:1,fresh:.5} },
+        { text: "香料层层叠叠的调料市场", types:{philosopher:1,umami:.5} },
+        { text: "搞怪实验风的快闪餐厅", types:{futurist:1,sweetsalty:.5} }
+      ]
+    },
+    {
+      text: "👥 在朋友圈子里，你是哪种人？",
+      options: [
+        { text: "永远带零食、让大家放松的", types:{creamy:1,sweet:.5} },
+        { text: "选餐厅从不踩雷的", types:{spicy:.5,futurist:1} },
+        { text: "知道各种隐藏菜单和宝藏小店的", types:{philosopher:.5,smoky:1} },
+        { text: "总说「相信我你一定要试」的", types:{sour:.5,sweetsalty:1} },
+        { text: "随和佛系、吃啥都开心的", types:{fresh:1,umami:.5} }
+      ]
+    },
+    {
+      text: "🌅 理想的周六上午？",
+      options: [
+        { text: "松饼枫糖浆，赖到自然醒", types:{sweet:1,sweetsalty:.5} },
+        { text: "逛菜市场，给自己打杯果昔", types:{fresh:1,sour:.5} },
+        { text: "手冲咖啡、黑胶唱片、慢慢发呆", types:{smoky:1,philosopher:.5} },
+        { text: "约Brunch，班尼迪克蛋配Mimosa", types:{creamy:.5,umami:1} },
+        { text: "刷手机找最近有什么新奇吃法", types:{futurist:.5,sweetsalty:1} }
+      ]
+    },
+    {
+      text: "🎬 今晚看什么片？",
+      options: [
+        { text: "温馨治愈的爱情片或动画", types:{sweet:.5,creamy:1} },
+        { text: "紧张刺激的动作片，要够燃", types:{spicy:1,smoky:.5} },
+        { text: "没人听过的小众独立电影", types:{futurist:1,philosopher:.5} },
+        { text: "涨知识的纪录片", types:{umami:.5,philosopher:1} },
+        { text: "笑到肚子疼的喜剧", types:{sweetsalty:1,sour:.5} }
+      ]
+    },
+    {
+      text: "🖥️ 你的工位暴露了你的性格：",
+      options: [
+        { text: "可爱杯子、零食抽屉、温馨小混乱", types:{sweet:.5,sweetsalty:1} },
+        { text: "极简风，干干净净，一盆绿植", types:{fresh:1,umami:.5} },
+        { text: "看似乱但我全知道在哪的「有序混沌」", types:{philosopher:1,spicy:.5} },
+        { text: "氛围灯、香薰蜡烛、复古小物件", types:{smoky:1,creamy:.5} },
+        { text: "贴满便签纸，全是灵感和脑洞", types:{futurist:1,sour:.5} }
+      ]
+    },
+    {
+      text: "⚡ 什么最让你来劲？",
+      options: [
+        { text: "一次有深度、有共鸣的聊天", types:{umami:1,philosopher:.5} },
+        { text: "尝试从来没做过的事", types:{sour:1,futurist:.5} },
+        { text: "竞争——哪怕只是桌游也要赢", types:{spicy:1,sweetsalty:.5} },
+        { text: "待在大自然里深呼吸", types:{fresh:1,smoky:.5} },
+        { text: "好吃的加好朋友，够了", types:{creamy:1,sweet:.5} }
+      ]
+    },
+    {
+      text: "🦸 选一个超能力：",
+      options: [
+        { text: "时间旅行——体验每个时代", types:{smoky:1,philosopher:.5} },
+        { text: "读心术——知道所有人在想什么", types:{umami:1,spicy:.5} },
+        { text: "瞬间移动——全世界都是我的食堂", types:{sour:.5,futurist:1} },
+        { text: "治愈之手——让身边人都好起来", types:{sweet:.5,creamy:1} },
+        { text: "变形术——为什么只做一种人？", types:{sweetsalty:1,fresh:.5} }
+      ]
+    }
+  ]
+};
+
+// ==================== PERSONALITIES ====================
+const personalitiesData = {
+  en: {
+    sweet:      { emoji:"🍯", name:"Sweet Soother",        desc:"You're the human equivalent of a warm hug. Comfort is your love language, and you believe most problems can be solved with something sweet and a cup of tea. People gravitate toward you because your energy is soft, steady, and genuinely nurturing — like vanilla that makes everything better without trying too hard.", flavors:["Vanilla Bean","Salted Caramel","Honey Blossom","Brown Sugar","Maple"] },
+    spicy:      { emoji:"🔥", name:"Spice Challenger",      desc:"You don't do 'mild.' In food and in life, you chase intensity — the kind that makes your eyes water and your heart race. You're the friend who orders the hottest thing on the menu and dares everyone else to keep up. Boring is your only real enemy.", flavors:["Sichuan Pepper","Habanero","Gochujang","Chili Crunch","Wasabi"] },
+    sour:       { emoji:"🍋", name:"Sour Explorer",         desc:"You're wired for novelty. While others replay their favorites, you're already onto the next thing — a new city, a new cuisine, a new obsession. You bring zest (literally) to every room you walk into, and your curiosity is genuinely contagious.", flavors:["Yuzu","Passion Fruit","Tamarind","Green Mango","Calamansi"] },
+    umami:      { emoji:"🧄", name:"Umami Commander",       desc:"You're the deep, savory center that holds everything together. Not flashy, not loud — but take you away and everyone notices. You value substance over style, and your taste (in food and in life) is quietly impeccable.", flavors:["Miso","Truffle","Aged Parmesan","Mushroom Blend","Soy Reduction"] },
+    fresh:      { emoji:"🌿", name:"Fresh Naturalist",      desc:"You crave clarity — in your food, your space, and your headspace. Clean flavors, real ingredients, nothing overprocessed. You're the one who actually reads labels and genuinely enjoys a salad (not as punishment). Your energy is crisp, grounded, and refreshing.", flavors:["Cucumber Mint","Lemongrass","Basil","Green Tea","Aloe Vera"] },
+    futurist:   { emoji:"🧪", name:"Flavor Futurist",       desc:"You eat things other people haven't even heard of yet. Ube lattes? You were there in 2019. You live at the crossroads of food, culture, and trends — and you're always three steps ahead. If it's weird, wonderful, or wildly creative, you're in.", flavors:["Ube & Pandan","Black Sesame","Butterfly Pea","Mochi Matcha","Charcoal Lemon"] },
+    sweetsalty:  { emoji:"🍬🧂", name:"Sweet & Salty Dynamo", desc:"Pick one? Never. You're the person who dips fries in a milkshake and sees nothing wrong with that. You thrive in contradictions — sweet and savory, structured and spontaneous, serious and silly. Your duality is your superpower, and honestly, the best flavors live in that in-between.", flavors:["Salted Egg Yolk","Honey Butter","Sea Salt Chocolate","Miso Caramel","Kettle Corn"] },
+    creamy:     { emoji:"🥛", name:"Creamy Comforter",      desc:"You're everyone's safe place. Like a perfectly steamed latte or a spoonful of gelato, you make people feel at ease just by being around. You value warmth, softness, and the kind of richness that feels like home. Your vibe is a cashmere blanket in human form.", flavors:["Cream Cheese","Condensed Milk","Butterscotch","Oat Milk Vanilla","Mascarpone"] },
+    smoky:      { emoji:"🪵", name:"Smoky Old Soul",        desc:"Your taste is decades ahead of your birth year. While others grab boba, you're sipping a single-origin pour-over or a peaty whiskey. You're drawn to depth, warmth, and things that take time — slow-smoked, barrel-aged, fire-roasted. The best things in life can't be rushed.", flavors:["Hickory Smoke","Charred Oak","Dark Roast Coffee","Lapsang Souchong","Bourbon Vanilla"] },
+    philosopher:{ emoji:"🫚", name:"Spice Philosopher",    desc:"You don't just eat — you analyze, layer, and compose. Your palate picks up notes others miss, and your spice rack is basically a library. You believe every great dish tells a story, and you're the one who can read all the chapters. Detail isn't your obsession — it's your art form.", flavors:["Cardamom","Star Anise","Sumac","Turmeric & Black Pepper","Ras el Hanout"] }
+  },
+  cn: {
+    sweet:      { emoji:"🍯", name:"甜系治愈者",    desc:"你就是行走的暖宝宝。让你选治愈方式，排名第一永远是「来点甜的」。朋友们靠近你就莫名安心，大概因为你自带香草味的那种温柔——不用很努力，就能让一切变好。", flavors:["香草","焦糖","蜂蜜","红糖","枫糖"] },
+    spicy:      { emoji:"🔥", name:"辛辣挑战者",    desc:"你的字典里没有「微辣」。吃饭要冒烟，生活要来劲，无聊才是你真正的天敌。你是那个永远点菜单上最辣选项、然后看别人被辣哭的人——而你面不改色。", flavors:["花椒","哈瓦那辣椒","韩式辣酱","辣椒脆","芥末"] },
+    sour:       { emoji:"🍋", name:"酸爽冒险家",    desc:"别人还在纠结老三样的时候，你已经在找下一个新鲜事了。新城市、新菜系、新执念——你天生为「第一个吃螃蟹」而活。", flavors:["柚子","百香果","罗望子","青芒","卡曼橘"] },
+    umami:      { emoji:"🧄", name:"咸鲜掌控者",    desc:"你是那道菜里看不见但少不了的灵魂。不张扬、不喧哗，但你一走开所有人都觉得少了点什么。品味安静，但无可挑剔。", flavors:["味噌","松露","帕玛森芝士","菌菇","酱油膏"] },
+    fresh:      { emoji:"🌿", name:"清新自然派",    desc:"你追求通透——吃的要干净、空间要清爽、脑子也要清醒。你是真心觉得沙拉好吃的人。你的气质就像一杯薄荷柠檬水——醒脑又舒服。", flavors:["黄瓜薄荷","香茅","罗勒","绿茶","芦荟"] },
+    futurist:   { emoji:"🧪", name:"猎奇实验家",    desc:"别人没听过的东西你早就吃过了。你永远站在「下一个爆款」前面——越奇怪越有创意，你就越来劲。", flavors:["香芋椰香","黑芝麻","蝶豆花","抹茶麻薯","竹炭柠檬"] },
+    sweetsalty:  { emoji:"🍬🧂", name:"甜咸永动机",  desc:"选甜还是咸？你永远选「都要」。你就是那个薯条蘸冰淇淋、还觉得完全没毛病的人。你活在矛盾里，而且活得理直气壮。", flavors:["咸蛋黄","蜂蜜黄油","海盐巧克力","味噌焦糖","爆米花"] },
+    creamy:     { emoji:"🥛", name:"奶系暖心派",    desc:"你是所有人的安全感。就像一杯打好奶泡的拿铁——靠近你的人都会不自觉地放松下来。温暖、柔软、醇厚，你就是羊绒毯变成了人。", flavors:["奶油芝士","炼乳","太妃糖","燕麦奶香草","马斯卡彭"] },
+    smoky:      { emoji:"🪵", name:"烟熏老灵魂",    desc:"你的味觉年龄比实际大二十岁。别人在喝奶茶的时候，你已经端起了手冲和威士忌。烧烤摊是你的精神故乡，你坚信「好东西急不来」。", flavors:["山核桃烟熏","碳烤橡木","深烘咖啡","正山小种","波本香草"] },
+    philosopher:{ emoji:"🫚", name:"香料哲学家",    desc:"你吃东西像在读书——要品前调、中调、后调。你能尝出咖喱里放了几种料，厨房调料架比别人书架还丰富。朋友说你嘴刁，你说这叫「有追求」。", flavors:["小豆蔻","八角","漆树果","姜黄黑胡椒","综合北非香料"] }
+  }
+};
+
+// ===== Personality Colors =====
+const pColors = {
+  sweet:      {c1:'#FFB6C1',c2:'#FFD700'},
+  spicy:      {c1:'#FF4500',c2:'#FF6347'},
+  sour:       {c1:'#32CD32',c2:'#FFD700'},
+  umami:      {c1:'#DAA520',c2:'#8B4513'},
+  fresh:      {c1:'#00C9A7',c2:'#20B2AA'},
+  futurist:   {c1:'#8A2BE2',c2:'#00CED1'},
+  sweetsalty:  {c1:'#FF7F50',c2:'#FFBF00'},
+  creamy:     {c1:'#FFF8DC',c2:'#DEB887'},
+  smoky:      {c1:'#6B6B6B',c2:'#CD853F'},
+  philosopher:{c1:'#C41E3A',c2:'#DAA520'}
+};
+
+// ==================== STATE ====================
+let currentQuestion = 0;
+let scores = {};
+
+function initScores(){ scores={}; Object.keys(personalitiesData.en).forEach(k=>scores[k]=0); }
+
+// ==================== SPARKLES ====================
+function createSparkles(){
+  const c=document.getElementById('sparkle-container');
+  c.innerHTML='';
+  for(let i=0;i<40;i++){
+    const s=document.createElement('div');
+    s.className='sparkle';
+    s.style.left=Math.random()*100+'%';
+    s.style.top=Math.random()*100+'%';
+    s.style.animationDuration=(2+Math.random()*3)+'s';
+    s.style.animationDelay=(Math.random()*4)+'s';
+    s.style.width=s.style.height=(1+Math.random()*3)+'px';
+    c.appendChild(s);
+  }
+}
+createSparkles();
+
+// ==================== LANGUAGE ====================
+function toggleLang(){
+  lang = lang==='en' ? 'cn' : 'en';
+  applyLang();
+  // if on quiz screen, re-render current question
+  if(document.getElementById('quiz-screen').classList.contains('active')) showQuestion();
+}
+
+function applyLang(){
+  const t=i18n[lang];
+  document.getElementById('lang-btn').textContent=t.langBtn;
+  document.getElementById('w-title').textContent=t.wTitle;
+  document.getElementById('w-desc').textContent=t.wDesc;
+  document.getElementById('w-btn').textContent=t.wBtn;
+  document.getElementById('result-label').textContent=t.resultLabel;
+  document.getElementById('flavor-heading').textContent=t.flavorHeading;
+  document.getElementById('btn-save').querySelector('span').textContent=t.saveBtn;
+  document.getElementById('btn-retake').textContent=t.retakeBtn;
+  document.getElementById('analytics-title').textContent=t.analyticsTitle;
+  document.getElementById('analytics-sub').textContent=t.analyticsSub;
+  document.getElementById('stat-total-lbl').textContent=t.statTotalLbl;
+  document.getElementById('stat-top-lbl').textContent=t.statTopLbl;
+  document.getElementById('chart-title').textContent=t.chartTitle;
+  document.getElementById('btn-clear').textContent=t.clearBtn;
+  document.getElementById('btn-close-modal').textContent=t.closeBtn;
+}
+
+// ==================== QUIZ ====================
+function startQuiz(){
+  initScores(); currentQuestion=0;
+  switchScreen('quiz-screen');
+  showQuestion();
+}
+
+function switchScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  const el=document.getElementById(id);
+  el.classList.add('active');
+  // reset animation
+  el.style.animation='none'; el.offsetHeight; el.style.animation='fadeSlideIn .5s ease forwards';
+}
+
+function showQuestion(){
+  const qs=questionsData[lang];
+  const q=qs[currentQuestion];
+  const pct=Math.round((currentQuestion/qs.length)*100);
+  const t=i18n[lang];
+
+  document.getElementById('progress-text').textContent=t.qOf.replace('{n}',currentQuestion+1);
+  document.getElementById('progress-pct').textContent=pct+'%';
+  document.getElementById('progress-fill').style.width=pct+'%';
+
+  const card=document.getElementById('question-card');
+  card.style.animation='none'; card.offsetHeight; card.style.animation='fadeSlideIn .4s ease forwards';
+
+  document.getElementById('question-text').textContent=q.text;
+  const container=document.getElementById('options-container');
+  container.innerHTML='';
+  q.options.forEach((opt,idx)=>{
+    const btn=document.createElement('button');
+    btn.className='option-btn';
+    btn.textContent=opt.text;
+    btn.onclick=()=>selectOption(idx);
+    container.appendChild(btn);
+  });
+}
+
+function selectOption(idx){
+  const btns=document.querySelectorAll('.option-btn');
+  btns.forEach(b=>b.classList.remove('selected'));
+  btns[idx].classList.add('selected');
+
+  const qs=questionsData[lang];
+  const types=qs[currentQuestion].options[idx].types;
+  Object.entries(types).forEach(([k,v])=>{scores[k]+=v;});
+
+  setTimeout(()=>{
+    currentQuestion++;
+    if(currentQuestion<qs.length) showQuestion(); else showResult();
+  },300);
+}
+
+function showResult(){
+  switchScreen('result-screen');
+
+  let maxKey=Object.keys(scores).reduce((a,b)=>scores[a]>=scores[b]?a:b);
+  const p=personalitiesData[lang][maxKey];
+  const colors=pColors[maxKey];
+
+  const capture=document.getElementById('result-capture');
+  if(capture){
+    capture.style.setProperty('--res-c1',colors.c1);
+    capture.style.setProperty('--res-c2',colors.c2);
+  }
+
+  // v3.11: External illustration file mapping
+  var illustMap = {
+    sweet:'10风味人格-transparent/01-sweet-anchor.png',
+    spicy:'10风味人格-transparent/02-fire-core.png',
+    sour:'10风味人格-transparent/03-sour-spark.png',
+    umami:'10风味人格-transparent/04-salt-switch.png',
+    fresh:'10风味人格-transparent/05-green-clarity.png',
+    futurist:'10风味人格-transparent/06-fusion-hacker.png',
+    sweetsalty:'10风味人格-transparent/07-sweet-salty-loop.png',
+    creamy:'10风味人格-transparent/08-dairy-comforter.png',
+    smoky:'10风味人格-transparent/09-smoky-soul.png',
+    philosopher:'10风味人格-transparent/10-spice-philosopher.png'
+  };
+
+  // Render illustration
+  var illustDiv = document.getElementById('result-illust');
+  var emojiDiv = document.getElementById('result-emoji');
+  var imgPath = illustMap[maxKey];
+  if(imgPath && illustDiv){
+    illustDiv.innerHTML='<img src="'+imgPath+'" alt="'+p.name+'">';
+    if(emojiDiv){ emojiDiv.textContent=p.emoji; emojiDiv.style.display='flex'; }
+  } else if(emojiDiv){
+    emojiDiv.textContent=p.emoji;
+    emojiDiv.style.display='block';
+  }
+
+  // Render title with gradient
+  var titleEl=document.getElementById('result-title');
+  if(titleEl){
+    titleEl.textContent=p.name;
+    titleEl.style.background='linear-gradient(90deg,#a932f2,#00d2d8)';
+    titleEl.style.webkitBackgroundClip='initial';
+    titleEl.style.webkitTextFillColor='#fff';
+  }
+
+  // Render description
+  var descEl=document.getElementById('result-desc');
+  if(descEl) descEl.textContent=p.desc;
+
+  // Render flavor tags
+  var tc=document.getElementById('flavor-tags');
+  if(tc){
+    tc.innerHTML='';
+    p.flavors.forEach(function(f){
+      var tag=document.createElement('span');
+      tag.className='flavor-tag';
+      tag.textContent=f;
+      tc.appendChild(tag);
+    });
+  }
+
+  // Save to analytics
+  saveAnalytics(maxKey);
+}
+
+function retakeQuiz(){
+  switchScreen('welcome-screen');
+}
+
+// ==================== SAVE IMAGE ====================
+function saveImage(){
+  const el=document.getElementById('result-capture');
+  html2canvas(el,{
+    backgroundColor:'#1a1740',
+    scale:2,
+    useCORS:true
+  }).then(canvas=>{
+    const link=document.createElement('a');
+    link.download='My_Flavor_Personality_FlavorTI.png';
+    link.href=canvas.toDataURL();
+    link.click();
+  }).catch(err=>{
+    // Fallback: alert user
+    alert('Image save requires a server environment or the html2canvas CDN. Please try opening this file with a live server.');
+  });
+}
+
+// ==================== ANALYTICS ====================
+function getAnalytics(){
+  try { return JSON.parse(localStorage.getItem('flavorti_analytics')||'[]'); }
+  catch(e){ return []; }
+}
+function saveAnalytics(type){
+  const data=getAnalytics();
+  data.push({type:type,timestamp:new Date().toISOString(),lang:lang});
+  localStorage.setItem('flavorti_analytics',JSON.stringify(data));
+}
+
+function toggleAnalytics(){
+  const m=document.getElementById('modal-overlay');
+  if(m.classList.contains('open')){ m.classList.remove('open'); }
+  else { renderAnalytics(); m.classList.add('open'); }
+}
+function closeModal(){ document.getElementById('modal-overlay').classList.remove('open'); }
+function closeModalOutside(e){ if(e.target===document.getElementById('modal-overlay')) closeModal(); }
+
+function clearData(){
+  localStorage.removeItem('flavorti_analytics');
+  renderAnalytics();
+}
+
+function renderAnalytics(){
+  const data=getAnalytics();
+  document.getElementById('stat-total').textContent=data.length;
+
+  // Count per type
+  const counts={};
+  Object.keys(personalitiesData.en).forEach(k=>counts[k]=0);
+  data.forEach(d=>{if(counts[d.type]!==undefined)counts[d.type]++;});
+
+  const maxCount=Math.max(...Object.values(counts),1);
+
+  // Find top
+  let topKey=Object.keys(counts).reduce((a,b)=>counts[a]>=counts[b]?a:b);
+  const topP=personalitiesData[lang][topKey];
+  document.getElementById('stat-top-emoji').textContent= data.length>0 ? topP.emoji : '-';
+
+  // Render bars
+  const barsContainer=document.getElementById('chart-bars');
+  barsContainer.innerHTML='';
+  const orderedKeys=Object.keys(counts).sort((a,b)=>counts[b]-counts[a]);
+  orderedKeys.forEach(k=>{
+    const p=personalitiesData[lang][k];
+    const colors=pColors[k];
+    const pctW=data.length>0 ? (counts[k]/maxCount)*100 : 0;
+    const row=document.createElement('div');
+    row.className='bar-row';
+    row.innerHTML=`
+      <div class="bar-label">${p.emoji} ${p.name}</div>
+      <div class="bar-track">
+        <div class="bar-fill" style="width:${pctW}%;background:linear-gradient(90deg,${colors.c1},${colors.c2})"></div>
+      </div>
+      <div class="bar-count">${counts[k]}</div>
+    `;
+    barsContainer.appendChild(row);
+  });
+}
+
+// Init language
+applyLang();
+</script>
+
+</body>
+</html>
